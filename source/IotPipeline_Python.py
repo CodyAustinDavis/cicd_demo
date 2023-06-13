@@ -35,10 +35,14 @@ env = dbutils.widgets.get("Environment").lower()
 conf = Config().config.get(env)
 
 source_bucket = conf.get("source_bucket")
+
+## You can make DEV/TEST always re-run the same test data set, but PROD never starts over
+start_over = conf.get("notebook_params").get("StartOver")
+
 database_name = str(conf.get("catalog")) + "." + str(conf.get("target_database"))
 
 print(f"Env Configs: {conf}")
-
+print(f"Start Over? : {start_over}")
 print(f"Running pipeline in {env} on Database: {database_name}")
 
 # COMMAND ----------
@@ -68,14 +72,30 @@ spark.sql(f"""USE {database_name};""")
 
 # COMMAND ----------
 
-# DBTITLE 1,Set up parameters
+# DBTITLE 1,Set up parameters - Make Integration test path point to integration test bucket
 ## Set up source and checkpoints
 ## REPLACE WITH YOUR OWN PATHS
-file_source_location = f"dbfs:/FileStore/shared_uploads/cody.davis@databricks.com/IotDemo/" #s3://codyaustindavisdemos/Demo/sales/"
-checkpoint_location = f"dbfs:/FileStore/shared_uploads/cody.davis@databricks.com/IotDemoCheckpoints/{env}_RawToBronze/"
 
+## This way when running integration test, its simply a config runtime switch!
+file_source_location = conf.get("source_bucket") + "source_data/"
+checkpoint_location_raw_to_bronze = conf.get("source_bucket") + f"checkpoints/RawToBronze/"
+checkpoint_location_bronze_to_silver = conf.get("source_bucket") + f"checkpoints/BronzeToSilver/"
 print("Now running Weather Data Streaming Service...")
 print(f"...from source location {file_source_location}")
+print(f"... with checkpoint location {checkpoint_location}")
+
+# COMMAND ----------
+
+# DBTITLE 1,Show source location
+dbutils.fs.ls(file_source_location)
+
+# COMMAND ----------
+
+# DBTITLE 1,Start Over Checkpoint in ENV
+if start_over == "yes":
+  print("Removing Checkpoint and starting over!")
+  dbutils.fs.rm(checkpoint_location_raw_to_bronze, recurse=True)
+  dbutils.fs.rm(checkpoint_location_bronze_to_silver, recurse=True)
 
 # COMMAND ----------
 
@@ -107,7 +127,7 @@ weatherInputSensorSchema = StructType([StructField("Skip", StringType(), True),
 # COMMAND ----------
 
 df_raw = (spark
-        .read
+        .readStream
         .option("header", "true")
         .option("inferSchema", "true")
         .schema(weatherInputSensorSchema) #infer
@@ -132,16 +152,24 @@ df_cleaned = df_raw.transform(clean_raw_data)
 
 # COMMAND ----------
 
+# DBTITLE 1,Write Stream to Bronze Table
 #### Actually execute stream or file run with same logic!
 
-df_cleaned.write.format("delta").option("mergeSchema", "true").mode("overwrite").saveAsTable(f"{database_name}.Bronze_AllSensors_Simple")
+(df_cleaned
+ .writeStream
+ .format("delta")
+ .trigger(once=True) ## You can put this in the config by environment as well!
+ .option("checkpointLocation", checkpoint_location_raw_to_bronze)
+ .option("mergeSchema", "true")
+ .toTable(f"{database_name}.Bronze_AllSensors_Simple")
+)
 
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC
-# MAGIC # Next Step: Merge Upsert
+# MAGIC # Bronze to Silver: Merge Upsert
 
 # COMMAND ----------
 
@@ -200,13 +228,6 @@ def mergeFunction(inputDf, id):
   )
   """
   return
-
-# COMMAND ----------
-
-# DBTITLE 1,Checkpoint path defined by user - where you want the streams "memory" to live -- this is how you clear the memory
-## Make checkpoint root locations configurable when you deploy!!!
-
-dbutils.fs.rm(checkpoint_location, recurse=True)
 
 # COMMAND ----------
 
