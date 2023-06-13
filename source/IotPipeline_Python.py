@@ -235,7 +235,7 @@ def mergeFunction(inputDf, id):
  .writeStream
  .queryName(f"{database_name}.IotStreamUpsert")
  .trigger(once=True) #processingTime='15 seconds' 
- .option("checkpointLocation", checkpoint_location)
+ .option("checkpointLocation", checkpoint_location_bronze_to_silver)
  .foreachBatch(mergeFunction)
  .start()
 )
