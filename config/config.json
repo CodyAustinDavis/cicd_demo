@@ -1,0 +1,3 @@
+{"dev": {"source_bucket": "s3://codydemos_dev/", "catalog": "cody_business_unit_dev", "target_database": "iot_system"},
+ "prod": {"source_bucket": "s3://cody_demos_prod/", "catalog": "cody_business_unit_prod", "target_database": "iot_system"}
+}
