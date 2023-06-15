@@ -1,0 +1,1 @@
+email_notifications_list = ["cody.davis@databricks.com"]
