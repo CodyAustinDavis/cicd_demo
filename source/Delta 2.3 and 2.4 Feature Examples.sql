@@ -58,8 +58,9 @@ SELECT * FROM new_sql_synax
 -- COMMAND ----------
 
 -- DBTITLE 1,Proper full data warehousing table with DV - 12.2 LTS + 
-CREATE TABLE dv_delta_table
+CREATE OR REPLACE TABLE dv_delta_table
 USING DELTA
+PARTITIONED BY (SensorMeasurement, SensorLocation)
 TBLPROPERTIES('delta.enableDeletionVectors' = true)
 AS 
 (SELECT * FROM cody_business_unit_dev.iot_system.silver_allsensors_simple
@@ -239,3 +240,23 @@ DESCRIBE DETAIL policy_table;
 --SET spark.databricks.delta.properties.defaults.minWriterVersion = 7;
 --SET spark.databricks.delta.properties.defaults.feature.allowColumnDefaults = supported;
 --SET spark.databricks.delta.properties.defaults.enableDeletionVectors = true;
+
+-- COMMAND ----------
+
+-- MAGIC %md 
+-- MAGIC
+-- MAGIC ## REORG Table
+-- MAGIC
+-- MAGIC https://docs.databricks.com/sql/language-manual/delta-reorg-table.html
+-- MAGIC
+-- MAGIC https://docs.databricks.com/delta/vacuum.html#purge
+-- MAGIC
+-- MAGIC This command helps clean out old metadata from soft delete operations on columns and rows such as 
+-- MAGIC <ul> 1. Columns that are dropped or renamed when column name mapping is enabled </ul>
+-- MAGIC <ul> 2. Rows that are deleted via Deletion Vectors </ul>
+
+-- COMMAND ----------
+
+REORG TABLE dv_delta_table
+WHERE SensorLocation = 'coyote_creek' 
+APPLY (PURGE);
