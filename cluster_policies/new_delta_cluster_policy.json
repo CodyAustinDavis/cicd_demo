@@ -1,0 +1,131 @@
+{
+  "instance_pool_id": {
+    "type": "forbidden",
+    "hidden": true
+  },
+  "spark_version": {
+    "type": "regex",
+    "pattern": "([12|13])+\\.[0-9]+\\.x-scala.*"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.logRetentionDuration": {
+    "type": "unlimited",
+    "isOptional": false,
+    "defaultValue": "INTERVAL 2 DAYS"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.deletedFileRetentionDuration": {
+    "type": "unlimited",
+    "isOptional": false,
+    "defaultValue": "INTERVAL 2 DAYS"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.checkpointRetentionDuration": {
+    "type": "unlimited",
+    "isOptional": false,
+    "defaultValue": "INTERVAL 2 DAYS"
+  },
+  "node_type_id": {
+    "type": "allowlist",
+    "values": [
+      "m6gd.xlarge",
+      "m6gd.2xlarge"
+    ],
+    "defaultValue": "m6gd.xlarge"
+  },
+  "driver_node_type_id": {
+    "type": "fixed",
+    "value": "m6gd.2xlarge",
+    "hidden": true
+  },
+  "autoscale.min_workers": {
+    "type": "fixed",
+    "value": 1,
+    "hidden": true
+  },
+  "autoscale.max_workers": {
+    "type": "range",
+    "maxValue": 10,
+    "defaultValue": 5
+  },
+  "enable_elastic_disk": {
+    "type": "fixed",
+    "value": true,
+    "hidden": true
+  },
+  "autotermination_minutes": {
+    "type": "fixed",
+    "value": 30,
+    "hidden": true
+  },
+  "aws_attributes.availability": {
+    "type": "fixed",
+    "value": "SPOT_WITH_FALLBACK",
+    "hidden": true
+  },
+  "aws_attributes.first_on_demand": {
+    "type": "range",
+    "minValue": 1,
+    "defaultValue": 100001
+  },
+  "aws_attributes.zone_id": {
+    "type": "unlimited",
+    "defaultValue": "auto",
+    "hidden": true
+  },
+  "aws_attributes.spot_bid_price_percent": {
+    "type": "fixed",
+    "value": 100,
+    "hidden": true
+  },
+  "custom_tags.team": {
+    "type": "fixed",
+    "value": "Data Science"
+  },
+  "dbus_per_hour": {
+    "type": "range",
+    "maxValue": 20
+  },
+  "cluster_type": {
+    "type": "allowlist",
+    "values": [
+      "all-purpose",
+      "job",
+      "dlt"
+    ]
+  },
+  "data_security_mode": {
+    "type": "allowlist",
+    "values": [
+      "SINGLE_USER",
+      "USER_ISOLATION"
+    ]
+  },
+  "spark_conf.spark.hadoop.delta.enableFastS3AListFrom": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "true"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.enableChangeDataFeed": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "true"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.minReaderVersion": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "1"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.minWriterVersion": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "7"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.feature.allowColumnDefaults": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "supported"
+  },
+  "spark_conf.spark.databricks.delta.properties.defaults.enableDeletionVectors": {
+    "type": "unlimited",
+    "isOptional": true,
+    "defaultValue": "true"
+  }
+}
